@@ -81,10 +81,6 @@
   .empty{grid-column:1/-1;text-align:center;padding:70px 0;color:var(--soft);line-height:1.6}
   .empty a{color:var(--ink);text-decoration:underline}
 
-  /* WHATSAPP FLOTANTE */
-  .fab{position:fixed;right:18px;bottom:84px; /* arriba del aviso "Powered by Netlify" */z-index:20;width:56px;height:56px;border-radius:50%;background:var(--wa);display:grid;place-items:center;box-shadow:0 8px 24px #0003}
-  .fab svg{width:28px;height:28px;fill:#fff}
-
   footer{border-top:1px solid var(--line);padding:32px 0 90px;font-size:13px;color:var(--soft)}
   footer .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
   footer b{display:block;color:var(--ink);font-weight:500;margin-bottom:4px}
@@ -148,7 +144,6 @@
   </div>
 </footer>
 
-<a class="fab" id="fab" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"></a>
 
 <script>
 /* ===== CONFIGURA AQUÍ ===== */
@@ -329,8 +324,6 @@ $("next").onclick = () => $("sizes").scrollBy({ left:  step() });
 $("sizes").addEventListener("scroll", updateArrows, { passive:true });
 addEventListener("resize", updateArrows);
 
-$("fab").href = wa("Hola TODOVENDE 👋 Quisiera información sobre sus zapatillas.");
-$("fab").innerHTML = WA_ICON;
 
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-cat],[data-size]");
