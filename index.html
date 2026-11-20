@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TODOVENDE Zapatillas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fafaf8; --ink:#111; --soft:#8a8a85; --line:#e6e5e0; --tile:#f0efeb; --wa:#25d366; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter Tight",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* BARRA SUPERIOR: logo + categoría + talla (fija) */
+  .picker{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 0}
+  .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px}
+  .logo{font-weight:600;letter-spacing:.22em;font-size:17px;line-height:1.2}
+  .logo small{display:block;font-size:10px;font-weight:400;letter-spacing:.2em;color:var(--soft);text-transform:uppercase;margin-top:2px}
+  .perks{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12px;color:var(--soft)}
+  .seg{--n:2;display:grid;grid-template-columns:repeat(var(--n),1fr);background:var(--tile);border-radius:999px;padding:4px;width:320px;position:relative}
+  .seg .pill{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/var(--n));background:var(--ink);border-radius:999px;
+             transition:transform .45s cubic-bezier(.65,0,.25,1.15)}
+  .seg button{position:relative;z-index:1;padding:10px 0;border-radius:999px;font-weight:500;font-size:15px;color:var(--soft);transition:color .3s}
+  .seg button.on{color:var(--bg)}
+  .sizerow{display:flex;align-items:center;gap:14px;margin-top:14px}
+  .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);white-space:nowrap}
+  .slider{position:relative;flex:1;min-width:0}
+  .sizes{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px;scroll-behavior:smooth}
+  .sizes::-webkit-scrollbar{display:none}
+  .arr{position:absolute;top:0;bottom:0;width:56px;display:flex;align-items:center;z-index:2;transition:opacity .2s}
+  .arr span{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 4px 12px #0002}
+  .arr svg{width:16px;height:16px}
+  .arr.prev{left:0;justify-content:flex-start;background:linear-gradient(90deg,var(--bg) 45%,transparent)}
+  .arr.next{right:0;justify-content:flex-end;background:linear-gradient(270deg,var(--bg) 45%,transparent)}
+  .arr.hide{opacity:0;pointer-events:none}
+
+  /* ANIMACIONES */
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  @keyframes slideIn{from{opacity:0;transform:translateX(var(--from,24px))}to{opacity:1;transform:none}}
+  .anim .card{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 60ms)}
+  .anim-sizes .sz{animation:slideIn .4s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 18ms)}
+  .anim-title{animation:slideIn .4s ease both}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .sz{flex:none;min-width:50px;height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;font-size:15px;font-weight:500;background:#fff;transition:all .15s}
+  .sz:hover{border-color:var(--ink)}
+  .sz.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .sz.all{font-size:13px;font-weight:400}
+
+  /* RESULTADOS */
+  .meta{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--soft);margin:24px 0 16px}
+  .meta b{font-weight:500;color:var(--ink);font-size:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:36px 18px;padding-bottom:100px}
+  .card{display:block}
+  .pic{aspect-ratio:1;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+  .track{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .track::-webkit-scrollbar{display:none}
+  .pic img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;padding:6%;scroll-snap-align:start;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+  .nav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:#fffd;border:1px solid var(--line);font-size:18px;line-height:1;display:grid;place-items:center;opacity:0;transition:opacity .2s;z-index:2}
+  .nav.prev{left:8px} .nav.next{right:8px}
+  .card:hover .nav{opacity:1}
+  @media (hover:none){.nav{display:none}}
+  .dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+  .dots i{width:6px;height:6px;border-radius:50%;background:#0002;transition:all .2s}
+  .dots i.on{background:var(--ink);width:16px;border-radius:3px}
+  .ask-price{font-size:13px;color:var(--soft)}
+  .tallas{font-size:12px;color:var(--soft);margin-top:6px;line-height:1.5}
+  .tallas b{color:var(--ink);font-weight:600}
+  .card:hover .pic img{transform:scale(1.04)}
+  .badge{position:absolute;top:10px;left:10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--bg);padding:5px 9px;border-radius:999px}
+  .info{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
+  .info h3{font-weight:500;font-size:15px}
+  .info p{font-size:13px;color:var(--soft);margin-top:2px}
+  .price{white-space:nowrap;text-align:right}
+  .price s{display:block;font-size:12px;color:var(--soft)}
+  .ask{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--ink);border-radius:999px;padding:10px;font-size:14px;font-weight:500;transition:all .2s}
+  .card:hover .ask{background:var(--ink);color:var(--bg)}
+  .ask svg{width:16px;height:16px}
+  .empty{grid-column:1/-1;text-align:center;padding:70px 0;color:var(--soft);line-height:1.6}
+  .empty a{color:var(--ink);text-decoration:underline}
+
+  /* WHATSAPP FLOTANTE */
+  .fab{position:fixed;right:18px;bottom:18px;z-index:20;width:56px;height:56px;border-radius:50%;background:var(--wa);display:grid;place-items:center;box-shadow:0 8px 24px #0003}
+  .fab svg{width:28px;height:28px;fill:#fff}
+
+  footer{border-top:1px solid var(--line);padding:32px 0 90px;font-size:13px;color:var(--soft)}
+  footer .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+  footer b{display:block;color:var(--ink);font-weight:500;margin-bottom:4px}
+
+  @media (max-width:860px){
+    .top{grid-template-columns:auto 1fr}
+    .perks{display:none}
+    .seg{width:auto;max-width:380px;justify-self:end;flex:1}
+  }
+  @media (max-width:600px){
+    .picker{padding:12px 0 10px}
+    .top{grid-template-columns:1fr;gap:10px}
+    .logo{font-size:16px;text-align:center}
+    .logo small{display:none}
+    .ask .long{display:none}
+    .seg{max-width:none;width:100%;justify-self:stretch}
+    .seg button{padding:9px 0;font-size:14px}
+    .sizerow{margin-top:10px}
+    .lbl{display:none}
+    .sz{min-width:46px;height:40px;font-size:14px}
+    .meta{margin:18px 0 12px}
+    .meta b{font-size:16px}
+    .grid{grid-template-columns:1fr 1fr;gap:26px 12px}
+    .info{flex-direction:column;gap:2px}
+    .price{text-align:left}
+    .price s{display:inline;margin-left:6px}
+    .ask{font-size:13px;padding:9px}
+  }
+</style>
+</head>
+<body>
+
+<div class="picker">
+  <div class="wrap">
+    <div class="top">
+      <div class="logo">TODOVENDE<small>Zapatillas</small></div>
+      <div class="seg" id="cats"></div>
+      <div class="perks"><span>Envíos a todo el Perú</span><span>Contra entrega en Lima</span></div>
+    </div>
+    <div class="sizerow">
+      <span class="lbl">Talla</span>
+      <div class="slider">
+        <button class="arr prev hide" id="prev" aria-label="Ver tallas anteriores"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span></button>
+        <div class="sizes" id="sizes"></div>
+        <button class="arr next hide" id="next" aria-label="Ver más tallas"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="meta"><b id="title"></b><span id="count"></span></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b>Tienda</b>Distrito, Urb. / Calle / Nº<br>Referencia</div>
+    <div><b>Horario</b>Sábado y domingo<br>10:00 – 20:00</div>
+    <div><b>Redes</b>Instagram · TikTok · Facebook</div>
+  </div>
+</footer>
+
+<a class="fab" id="fab" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"></a>
+
+<script>
+/* ===== CONFIGURA AQUÍ ===== */
+const WHATSAPP = "51943632124"; // tu número con código de país, sin + ni espacios
+
+const CATS = {
+  mujer:  { label:"Mujer",  sizes:[35,35.5,36,36.5,37,37.5,38,38.5,39,39.5,40] },
+  hombre: { label:"Hombre", sizes:[39,40,41,41.5,42,42.5,43,45,46] }
+};
+
+// Productos sacados del catálogo de Canva (págs. 1–18 Mujer, 19–29 Hombre).
+// price:null = sin precio en el Canva → se muestra "Consultar precio".
+// imgs: fotos del modelo (la primera es la principal). Oficiales en img/sk/, del Canva en img/.
+const PRODUCTS = [
+  {cat:"mujer", code:"114762/BBK", desc:"Negro total", price:149, sizes:[37,39.5], imgs:["img/sk/114762_bbk_hero_lg.webp","img/sk/114762_bbk_profile_01.webp","img/sk/114762_bbk_profile_05.webp","img/sk/114762_bbk_outsole.webp"]},
+  {cat:"mujer", code:"117522/BBK", desc:"Negro total", price:159, sizes:[39.5], imgs:["img/sk/117522_bbk_hero_lg.webp","img/sk/117522_bbk_profile_01.webp","img/sk/117522_bbk_profile_05.webp","img/sk/117522_bbk_outsole.webp"]},
+  {cat:"mujer", code:"117522/WHT", desc:"Blanco", price:159, sizes:[39.5], imgs:["img/sk/117522_wht_hero_lg.webp","img/sk/117522_wht_profile_01.webp","img/sk/117522_wht_profile_05.webp","img/sk/117522_wht_outsole.webp"]},
+  {cat:"mujer", code:"125925/NVBL", desc:"Azul marino y azul", price:139, sizes:[39.5], imgs:["img/sk/125925_nvbl_hero_lg.webp","img/sk/125925_nvbl_profile_01.webp","img/sk/125925_nvbl_profile_05.webp","img/sk/125925_nvbl_outsole.webp"]},
+  {cat:"mujer", code:"128619/WLB", desc:"Blanco y celeste", price:159, sizes:[39], imgs:["img/sk/128619_wlb_hero_lg.webp","img/sk/128619_wlb_profile_01.webp","img/sk/128619_wlb_profile_05.webp","img/sk/128619_wlb_outsole.webp"]},
+  {cat:"mujer", code:"128650/PNK", desc:"Rosado", price:159, sizes:[36.5,37.5,38,38.5,39,40], imgs:["img/sk/128650_pnk_hero_lg.webp","img/sk/128650_pnk_profile_01.webp","img/sk/128650_pnk_profile_05.webp","img/sk/128650_pnk_outsole.webp"]},
+  {cat:"mujer", code:"129000/RAS", desc:"Frambuesa", price:159, sizes:[39], imgs:["img/sk/129000_ras_hero_lg.webp","img/sk/129000_ras_profile_01.webp","img/sk/129000_ras_profile_05.webp","img/sk/129000_ras_outsole.webp"]},
+  {cat:"mujer", code:"129470/PKCL", desc:"Rosado coral", price:169, sizes:[39.5], imgs:["img/sk/129470_pkcl_hero_lg.webp","img/sk/129470_pkcl_profile_01.webp","img/sk/129470_pkcl_profile_05.webp","img/sk/129470_pkcl_outsole.webp"]},
+  {cat:"mujer", code:"129826/LTGY", desc:"Gris claro", price:159, sizes:[39,39.5], imgs:["img/sk/129826_ltgy_hero_lg.webp","img/sk/129826_ltgy_profile_01.webp","img/sk/129826_ltgy_profile_05.webp","img/sk/129826_ltgy_outsole.webp"]},
+  {cat:"mujer", code:"139470/LTGY", desc:"Gris claro", price:169, sizes:[39.5], imgs:["img/69095efe.webp"]},
+  {cat:"mujer", code:"149267/WLV", desc:"Blanco y lavanda", price:179, sizes:[39], imgs:["img/sk/149267_wlv_hero_lg.webp","img/sk/149267_wlv_profile_01.webp","img/sk/149267_wlv_profile_05.webp","img/sk/149267_wlv_outsole.webp"]},
+  {cat:"mujer", code:"149267/WLV", desc:"Blanco y lavanda", price:159, sizes:[39], imgs:["img/7c1dd1da.webp"]},
+  {cat:"mujer", code:"150215/NTGD", desc:"Natural y dorado", price:149, sizes:[39.5], imgs:["img/sk/150215_ntgd_hero_lg.webp","img/sk/150215_ntgd_profile_01.webp","img/sk/150215_ntgd_profile_05.webp","img/sk/150215_ntgd_outsole.webp"]},
+  {cat:"mujer", code:"150373/WTRG", desc:"Blanco", price:149, sizes:[39.5], imgs:["img/sk/150373_wtrg_hero_lg.webp","img/sk/150373_wtrg_profile_01.webp","img/sk/150373_wtrg_profile_05.webp","img/sk/150373_wtrg_outsole.webp"]},
+  {cat:"mujer", code:"150412/BKW", desc:"Negro y blanco", price:179, sizes:[39.5,40], imgs:["img/sk/150412_bkw_hero_lg.webp","img/sk/150412_bkw_profile_01.webp","img/sk/150412_bkw_profile_05.webp","img/sk/150412_bkw_outsole.webp"]},
+  {cat:"mujer", code:"150475/WSL", desc:"Blanco y plateado", price:159, sizes:[39.5,40], imgs:["img/sk/150475_wsl_hero_lg.webp","img/sk/150475_wsl_profile_01.webp","img/sk/150475_wsl_profile_05.webp","img/sk/150475_wsl_outsole.webp"]},
+  {cat:"mujer", code:"150725/NTBR", desc:"Natural y marrón", price:179, sizes:[39.5], imgs:["img/sk/150725_ntbr_hero_lg.webp","img/sk/150725_ntbr_profile_01.webp","img/sk/150725_ntbr_profile_05.webp","img/sk/150725_ntbr_outsole.webp"]},
+  {cat:"mujer", code:"155196/NAT", desc:"Natural", price:159, sizes:[39.5], imgs:["img/sk/155196_nat_hero_lg.webp","img/sk/155196_nat_profile_01.webp","img/sk/155196_nat_profile_05.webp","img/sk/155196_nat_outsole.webp"]},
+  {cat:"mujer", code:"180268/GYPK", desc:"Gris y rosado", price:159, sizes:[39.5], imgs:["img/sk/180268_gypk_hero_lg.webp","img/sk/180268_gypk_profile_01.webp","img/sk/180268_gypk_profile_05.webp","img/sk/180268_gypk_outsole.webp"]},
+  {cat:"mujer", code:"185390/WMLT", desc:"Blanco multicolor", price:159, sizes:[39], imgs:["img/sk/185390_wmlt_hero_lg.webp","img/sk/185390_wmlt_profile_01.webp","img/sk/185390_wmlt_profile_05.webp","img/sk/185390_wmlt_outsole.webp"]},
+  {cat:"mujer", code:"104744/NVY", desc:"Azul marino", price:null, sizes:[36,38], imgs:["img/sk/104744_nvy_hero_lg.webp","img/sk/104744_nvy_profile_01.webp","img/sk/104744_nvy_profile_05.webp","img/sk/104744_nvy_outsole.webp"]},
+  {cat:"mujer", code:"114596/GLD", desc:"Dorado", price:null, sizes:[36], imgs:["img/sk/114596_gld_hero_lg.webp","img/sk/114596_gld_profile_01.webp","img/sk/114596_gld_profile_05.webp","img/sk/114596_gld_outsole.webp"]},
+  {cat:"mujer", code:"114596/SIL", desc:"Plateado", price:null, sizes:[38], imgs:["img/sk/114596_sil_hero_lg.webp","img/sk/114596_sil_profile_01.webp","img/sk/114596_sil_profile_05.webp","img/sk/114596_sil_outsole.webp"]},
+  {cat:"mujer", code:"117624/GYMT", desc:"Gris multicolor", price:null, sizes:[36,37], imgs:["img/sk/117624_gymt_hero_lg.webp","img/sk/117624_gymt_profile_01.webp","img/sk/117624_gymt_profile_05.webp","img/sk/117624_gymt_outsole.webp"]},
+  {cat:"mujer", code:"117730/WHT", desc:"Blanco", price:null, sizes:[36.5], imgs:["img/sk/117730_wht_hero_lg.webp","img/sk/117730_wht_profile_01.webp","img/sk/117730_wht_profile_05.webp","img/sk/117730_wht_outsole.webp"]},
+  {cat:"mujer", code:"125920/TPBL", desc:"Topo y azul", price:null, sizes:[35,35.5,38.5], imgs:["img/sk/125920_tpbl_hero_lg.webp","img/sk/125920_tpbl_profile_01.webp","img/sk/125920_tpbl_profile_05.webp","img/sk/125920_tpbl_outsole.webp"]},
+  {cat:"mujer", code:"129826/LTGY", desc:"Gris claro", price:null, sizes:[38.5], imgs:["img/sk/129826_ltgy_hero_lg.webp","img/sk/129826_ltgy_profile_01.webp","img/sk/129826_ltgy_profile_05.webp","img/sk/129826_ltgy_outsole.webp"]},
+  {cat:"mujer", code:"150218/GYMT", desc:"Gris multicolor", price:null, sizes:[38.5], imgs:["img/sk/150218_gymt_hero_lg.webp","img/sk/150218_gymt_profile_01.webp","img/sk/150218_gymt_profile_05.webp","img/sk/150218_gymt_outsole.webp"]},
+  {cat:"mujer", code:"150556/WGY", desc:"Blanco y gris", price:null, sizes:[38.5], imgs:["img/sk/150556_wgy_hero_lg.webp","img/sk/150556_wgy_profile_01.webp"]},
+  {cat:"mujer", code:"150620/MVE", desc:"Malva", price:null, sizes:[40], imgs:["img/sk/150620_mve_hero_lg.webp","img/sk/150620_mve_profile_01.webp","img/sk/150620_mve_profile_05.webp","img/sk/150620_mve_outsole.webp"]},
+  {cat:"mujer", code:"150621/OLV", desc:"Verde oliva", price:null, sizes:[36.5], imgs:["img/sk/150621_olv_hero_lg.webp","img/sk/150621_olv_profile_01.webp","img/sk/150621_olv_profile_05.webp","img/sk/150621_olv_outsole.webp"]},
+  {cat:"mujer", code:"150668/NVY", desc:"Azul marino", price:null, sizes:[36], imgs:["img/sk/150668_nvy_hero_lg.webp","img/sk/150668_nvy_profile_01.webp","img/sk/150668_nvy_profile_05.webp","img/sk/150668_nvy_outsole.webp"]},
+  {cat:"mujer", code:"177118/BLK", desc:"Negro", price:null, sizes:[36], imgs:["img/sk/177118_blk_hero_lg.webp","img/sk/177118_blk_profile_01.webp","img/sk/177118_blk_profile_05.webp","img/sk/177118_blk_outsole.webp"]},
+  {cat:"mujer", code:"177209/OFWT", desc:"Blanco hueso", price:null, sizes:[40], imgs:["img/sk/177209_ofwt_hero_lg.webp","img/sk/177209_ofwt_profile_01.webp","img/sk/177209_ofwt_profile_05.webp","img/sk/177209_ofwt_outsole.webp"]},
+  {cat:"mujer", code:"177344/TPE", desc:"Topo", price:null, sizes:[36.5,40], imgs:["img/sk/177344_tpe_hero_lg.webp","img/sk/177344_tpe_profile_01.webp","img/sk/177344_tpe_profile_05.webp","img/sk/177344_tpe_outsole.webp"]},
+  {cat:"mujer", code:"177394/BLK", desc:"Negro", price:null, sizes:[37], imgs:["img/sk/177394_blk_hero_lg.webp","img/sk/177394_blk_profile_01.webp","img/sk/177394_blk_profile_05.webp","img/sk/177394_blk_outsole.webp"]},
+  {cat:"mujer", code:"177817/SIL", desc:"Plateado", price:null, sizes:[36.5], imgs:["img/sk/177817_sil_hero_lg.webp","img/sk/177817_sil_profile_01.webp","img/sk/177817_sil_profile_05.webp","img/sk/177817_sil_outsole.webp"]},
+  {cat:"mujer", code:"185176/BLK", desc:"Negro", price:null, sizes:[36,38], imgs:["img/sk/185176_blk_hero_lg.webp","img/sk/185176_blk_profile_01.webp","img/sk/185176_blk_profile_05.webp","img/sk/185176_blk_outsole.webp"]},
+  {cat:"mujer", code:"303574L/GRY", desc:"Gris", price:null, sizes:[37,38], imgs:["img/sk/303574l_gry_hero_lg.webp","img/sk/303574l_gry_profile_01.webp","img/sk/303574l_gry_profile_05.webp","img/sk/303574l_gry_outsole.webp"]},
+  {cat:"mujer", code:"303643L/GYMT", desc:"Gris multicolor", price:null, sizes:[37], imgs:["img/07e9b4d6.webp"]},
+  {cat:"mujer", code:"310230L/PWMT", desc:"Blanco y morado", price:null, sizes:[36], imgs:["img/7f376c82.webp"]},
+  {cat:"hombre", code:"118423/CCL", desc:"Carbón", price:159, sizes:[46], imgs:["img/sk/118423_ccl_hero_lg.webp","img/sk/118423_ccl_profile_01.webp","img/sk/118423_ccl_profile_05.webp","img/sk/118423_ccl_outsole.webp"]},
+  {cat:"hombre", code:"205326/BLK", desc:"Negro", price:159, sizes:[46], imgs:["img/sk/205326_blk_hero_lg.webp","img/sk/205326_blk_profile_01.webp","img/sk/205326_blk_profile_05.webp","img/sk/205326_blk_outsole.webp"]},
+  {cat:"hombre", code:"220839/WHT", desc:"Blanco", price:169, sizes:[46], imgs:["img/sk/220839_wht_hero_lg.webp","img/sk/220839_wht_profile_01.webp","img/sk/220839_wht_profile_05.webp","img/sk/220839_wht_outsole.webp"]},
+  {cat:"hombre", code:"220861/WBK", desc:"Blanco y negro", price:149, sizes:[46], imgs:["img/sk/220861_wbk_hero_lg.webp","img/sk/220861_wbk_profile_01.webp","img/sk/220861_wbk_profile_05.webp","img/sk/220861_wbk_outsole.webp"]},
+  {cat:"hombre", code:"232618/BBK", desc:"Negro total", price:169, sizes:[46], imgs:["img/sk/232618_bbk_hero_lg.webp","img/sk/232618_bbk_profile_01.webp","img/sk/232618_bbk_profile_05.webp","img/sk/232618_bbk_outsole.webp"]},
+  {cat:"hombre", code:"232618/CCBK", desc:"Carbón y negro", price:169, sizes:[46], imgs:["img/sk/232618_ccbk_hero_lg.webp","img/sk/232618_ccbk_profile_01.webp","img/sk/232618_ccbk_profile_05.webp","img/sk/232618_ccbk_outsole.webp"]},
+  {cat:"hombre", code:"232709/TLBK", desc:"Azul y negro", price:149, sizes:[46], imgs:["img/sk/232709_tlbk_hero_lg.webp","img/sk/232709_tlbk_profile_01.webp","img/sk/232709_tlbk_profile_05.webp","img/sk/232709_tlbk_outsole.webp"]},
+  {cat:"hombre", code:"232930/BBK", desc:"Negro total", price:169, sizes:[46], imgs:["img/sk/232930_bbk_hero_lg.webp","img/sk/232930_bbk_profile_01.webp","img/sk/232930_bbk_profile_05.webp","img/sk/232930_bbk_outsole.webp"]},
+  {cat:"hombre", code:"237783/OLV", desc:"Verde oliva", price:149, sizes:[39,46], imgs:["img/sk/237783_olv_hero_lg.webp","img/sk/237783_olv_profile_01.webp","img/sk/237783_olv_profile_05.webp","img/sk/237783_olv_outsole.webp"]},
+  {cat:"hombre", code:"237806/OLV", desc:"Verde oliva", price:169, sizes:[40,45,46], imgs:["img/sk/237806_olv_hero_lg.webp","img/sk/237806_olv_profile_01.webp","img/sk/237806_olv_profile_05.webp","img/sk/237806_olv_outsole.webp"]},
+  {cat:"hombre", code:"237812/OLV", desc:"Verde oliva", price:169, sizes:[46], imgs:["img/sk/237812_olv_hero_lg.webp","img/sk/237812_olv_profile_01.webp","img/sk/237812_olv_profile_05.webp","img/sk/237812_olv_outsole.webp"]},
+  {cat:"hombre", code:"251202/NVY", desc:"Azul marino", price:159, sizes:[46], imgs:["img/sk/251202_nvy_hero_lg.webp","img/sk/251202_nvy_profile_01.webp","img/sk/251202_nvy_profile_05.webp","img/sk/251202_nvy_outsole.webp"]},
+  {cat:"hombre", code:"118107/NVY", desc:"Azul marino", price:null, sizes:[40], imgs:["img/sk/118107_nvy_hero_lg.webp","img/sk/118107_nvy_profile_01.webp","img/sk/118107_nvy_profile_05.webp","img/sk/118107_nvy_outsole.webp"]},
+  {cat:"hombre", code:"118113W/DKNV", desc:"Azul oscuro", price:null, sizes:[42], imgs:["img/sk/118113w_dknv_hero_lg.webp","img/sk/118113w_dknv_profile_01.webp","img/sk/118113w_dknv_profile_05.webp","img/sk/118113w_dknv_outsole.webp"]},
+  {cat:"hombre", code:"183360/NVY", desc:"Azul marino", price:null, sizes:[41], imgs:["img/sk/183360_nvy_hero_lg.webp","img/sk/183360_nvy_profile_01.webp","img/sk/183360_nvy_profile_05.webp","img/sk/183360_nvy_outsole.webp"]},
+  {cat:"hombre", code:"205732/COC", desc:"Marrón", price:null, sizes:[42,43], imgs:["img/sk/205732_coc_hero_lg.webp","img/sk/205732_coc_profile_01.webp","img/sk/205732_coc_profile_05.webp","img/sk/205732_coc_outsole.webp"]},
+  {cat:"hombre", code:"216705/BBK", desc:"Negro total", price:null, sizes:[42], imgs:["img/sk/216705_bbk_hero_lg.webp","img/sk/216705_bbk_profile_01.webp","img/sk/216705_bbk_profile_05.webp","img/sk/216705_bbk_outsole.webp"]},
+  {cat:"hombre", code:"220609/SLT", desc:"Gris pizarra", price:null, sizes:[45], imgs:["img/sk/220609_slt_hero_lg.webp","img/sk/220609_slt_profile_01.webp","img/sk/220609_slt_profile_05.webp","img/sk/220609_slt_outsole.webp"]},
+  {cat:"hombre", code:"232081/NVOR", desc:"Azul marino y naranja", price:null, sizes:[42], imgs:["img/sk/232081_nvor_hero_lg.webp","img/sk/232081_nvor_profile_01.webp","img/sk/232081_nvor_profile_05.webp","img/sk/232081_nvor_outsole.webp"]},
+  {cat:"hombre", code:"232709/TLBL", desc:"Azul y turquesa", price:null, sizes:[41.5], imgs:["img/244d66b0.webp"]},
+  {cat:"hombre", code:"232712/TPBL", desc:"Topo y azul", price:null, sizes:[42.5], imgs:["img/sk/232712_tpbl_hero_lg.webp","img/sk/232712_tpbl_profile_01.webp","img/sk/232712_tpbl_profile_05.webp","img/sk/232712_tpbl_outsole.webp"]},
+  {cat:"hombre", code:"232930/OLBK", desc:"Oliva y negro", price:null, sizes:[41], imgs:["img/sk/232930_olbk_hero_lg.webp","img/sk/232930_olbk_profile_01.webp","img/sk/232930_olbk_profile_05.webp","img/sk/232930_olbk_outsole.webp"]},
+  {cat:"hombre", code:"233023/BKCC", desc:"Negro y carbón", price:null, sizes:[41,42], imgs:["img/sk/233023_bkcc_hero_lg.webp","img/sk/233023_bkcc_profile_01.webp","img/sk/233023_bkcc_profile_05.webp","img/sk/233023_bkcc_outsole.webp"]},
+  {cat:"hombre", code:"233103/BBK", desc:"Negro total", price:null, sizes:[40], imgs:["img/sk/233103_bbk_hero_lg.webp","img/sk/233103_bbk_profile_01.webp","img/sk/233103_bbk_profile_05.webp","img/sk/233103_bbk_outsole.webp"]},
+  {cat:"hombre", code:"237783/BLK", desc:"Negro", price:null, sizes:[39,40], imgs:["img/sk/237783_blk_hero_lg.webp","img/sk/237783_blk_profile_01.webp","img/sk/237783_blk_profile_05.webp","img/sk/237783_blk_outsole.webp"]},
+  {cat:"hombre", code:"246110C/WBK", desc:"Blanco y negro", price:null, sizes:[41,41.5], imgs:["img/sk/246110c_wbk_hero_lg.webp","img/sk/246110c_wbk_profile_01.webp","img/sk/246110c_wbk_profile_05.webp","img/sk/246110c_wbk_outsole.webp"]},
+  {cat:"hombre", code:"246117/WBMT", desc:"Blanco multicolor", price:null, sizes:[40], imgs:["img/sk/246117_wbmt_hero_lg.webp","img/sk/246117_wbmt_profile_01.webp","img/sk/246117_wbmt_profile_05.webp","img/sk/246117_wbmt_outsole.webp"]}
+];
+/* ========================== */
+
+const $ = id => document.getElementById(id);
+const WA_ICON = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7a2.8 2.8 0 0 0 1.8-1.3 2.3 2.3 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>`;
+const wa = text => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
+
+let state = { cat:"mujer", size:null };
+const KEYS = Object.keys(CATS);
+
+// Categorías: se crean una sola vez para que la "píldora" se deslice
+$("cats").style.setProperty("--n", KEYS.length);
+$("cats").innerHTML = `<span class="pill" id="pill"></span>` +
+  KEYS.map(k => `<button data-cat="${k}">${CATS[k].label}</button>`).join("");
+
+const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
+function renderCats(){
+  const i = KEYS.indexOf(state.cat);
+  $("pill").style.transform = `translateX(${i * 100}%)`;
+  document.querySelectorAll("[data-cat]").forEach(b => b.classList.toggle("on", b.dataset.cat === state.cat));
+}
+
+function renderSizes(dir){
+  const c = CATS[state.cat];
+  const box = $("sizes");
+  box.style.setProperty("--from", `${dir * 30}px`);
+  box.innerHTML = [null, ...c.sizes].map((s, i) =>
+    `<button class="sz ${s===null?"all":""} ${s===state.size?"on":""}" data-size="${s ?? ""}" style="--i:${i}">${s ?? "Todas"}</button>`).join("");
+  box.scrollLeft = 0;
+  replay(box, "anim-sizes");
+  updateArrows();
+}
+
+function markSize(){
+  document.querySelectorAll(".sz").forEach(b => b.classList.toggle("on", (b.dataset.size ? +b.dataset.size : null) === state.size));
+}
+
+function renderGrid(dir){
+  const c = CATS[state.cat];
+  const list = PRODUCTS.filter(p => p.cat===state.cat && (state.size===null || p.sizes.includes(state.size)));
+  const t = $("title");
+  t.textContent = c.label + (state.size ? ` · Talla ${state.size}` : "");
+  t.style.setProperty("--from", `${dir * 20}px`);
+  replay(t, "anim-title");
+  $("count").textContent = `${list.length} ${list.length===1?"modelo":"modelos"}`;
+
+  $("grid").innerHTML = list.length ? list.map((p, i) => {
+    const talla = state.size ? `talla ${state.size}` : "(¿qué tallas tienen?)";
+    const precio = p.price ? `Precio S/ ${p.price}.` : "¿Cuál es el precio?";
+    const msg = `Hola TODOVENDE 👋 Quiero el modelo ${p.code} (${p.desc}) – ${c.label}, ${talla}. ${precio}`;
+    return `<a class="card" style="--i:${i}" target="_blank" rel="noopener" href="${wa(msg)}">
+      <div class="pic">${p.badge?`<span class="badge">${p.badge}</span>`:""}
+        <div class="track">${p.imgs.map((src, k) => `<img src="${src}" alt="Zapatilla ${p.code} ${p.desc} – foto ${k+1}" loading="lazy">`).join("")}</div>
+        ${p.imgs.length > 1 ? `
+        <button class="nav prev" data-nav="-1" aria-label="Foto anterior">‹</button>
+        <button class="nav next" data-nav="1" aria-label="Foto siguiente">›</button>
+        <div class="dots">${p.imgs.map((_, k) => `<i class="${k?"":"on"}"></i>`).join("")}</div>` : ""}
+      </div>
+      <div class="info">
+        <div><h3>${p.code}</h3><p>${p.desc}</p></div>
+        <div class="price">${p.price ? `S/ ${p.price}` : `<span class="ask-price">Consultar</span>`}${p.old?`<s>S/ ${p.old}</s>`:""}</div>
+      </div>
+      <p class="tallas">Tallas: ${p.sizes.map(s => s===state.size ? `<b>${s}</b>` : s).join(" · ")}</p>
+      <div class="ask">${WA_ICON}${state.size ? `Pedir talla ${state.size}` : `<span>Pedir<span class="long"> por WhatsApp</span></span>`}</div>
+    </a>`;
+  }).join("") : `<p class="empty">Por ahora no tenemos modelos en talla ${state.size}.<br>
+      <a target="_blank" rel="noopener" href="${wa(`Hola TODOVENDE, ¿tendrán zapatillas de ${c.label} en talla ${state.size}?`)}">Avísame cuando llegue</a></p>`;
+  replay($("grid"), "anim");
+  $("grid").querySelectorAll(".track").forEach(t => t.addEventListener("scroll", () => syncDots(t), { passive:true }));
+}
+
+// Galería de fotos dentro de cada tarjeta
+function syncDots(track){
+  const k = Math.round(track.scrollLeft / track.clientWidth);
+  track.parentElement.querySelectorAll(".dots i").forEach((d, j) => d.classList.toggle("on", j === k));
+}
+$("grid").addEventListener("click", e => {
+  const b = e.target.closest("[data-nav]");
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();          // no abrir WhatsApp al cambiar de foto
+  const t = b.parentElement.querySelector(".track");
+  const n = t.children.length, k = Math.round(t.scrollLeft / t.clientWidth);
+  t.scrollTo({ left: ((k + +b.dataset.nav + n) % n) * t.clientWidth, behavior:"smooth" });
+});
+
+// Flechas del slider de tallas
+function updateArrows(){
+  const s = $("sizes"), max = s.scrollWidth - s.clientWidth;
+  $("prev").classList.toggle("hide", s.scrollLeft <= 4);
+  $("next").classList.toggle("hide", s.scrollLeft >= max - 4);
+}
+const step = () => Math.max(120, $("sizes").clientWidth * 0.7);
+$("prev").onclick = () => $("sizes").scrollBy({ left: -step() });
+$("next").onclick = () => $("sizes").scrollBy({ left:  step() });
+$("sizes").addEventListener("scroll", updateArrows, { passive:true });
+addEventListener("resize", updateArrows);
+
+$("fab").href = wa("Hola TODOVENDE 👋 Quisiera información sobre sus zapatillas.");
+$("fab").innerHTML = WA_ICON;
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-cat],[data-size]");
+  if (!b) return;
+  if (b.dataset.cat) {
+    if (b.dataset.cat === state.cat) return;
+    const dir = Math.sign(KEYS.indexOf(b.dataset.cat) - KEYS.indexOf(state.cat));
+    state = { cat:b.dataset.cat, size:null };
+    renderCats(); renderSizes(dir); renderGrid(dir);
+  } else {
+    state.size = b.dataset.size ? +b.dataset.size : null;
+    markSize(); renderGrid(0);
+    b.scrollIntoView({ behavior:"smooth", inline:"center", block:"nearest" });
+  }
+});
+
+renderCats(); renderSizes(1); renderGrid(0);
+</script>
+</body>
+</html>
